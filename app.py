@@ -3,6 +3,17 @@ import os
 import markdown
 
 def convert_markdown_to_html(input_path, output_path=None):
+    if not os.path.isfile(input_path):
+        print(f"error: file '{input_path}' does not exist", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        with open(input_path, 'r') as file:
+            markdown_content = file.read()
+    except Exception as e:
+        print(f"error with reading file '{input_path}': {e}", file=sys.stderr)
+        sys.exit(1)
+
     try:
         html_content = markdown.markdown(markdown_content)
     except Exception as e:
