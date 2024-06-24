@@ -10,15 +10,18 @@ def parse_markdown(markdown_text):
     markdown_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markdown_text)
     markdown_text = re.sub(r'_(.*?)_', r'<i>\1</i>', markdown_text)
 
-    markdown_text = re.sub(r'```(.*?)```', r'<pre>\1</pre>', markdown_text, flags=re.DOTALL)
-
-    markdown_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', markdown_text)
+    markdown_text = re.sub(r'```(.*?)```', r'<pre><code>\1</code></pre>', markdown_text, flags=re.DOTALL)
+    markdown_text = re.sub(r'`(.*?)`', r'<code>\1</code>', markdown_text)
 
     markdown_text = re.sub(r'(?m)^- (.*?)$', r'<li>\1</li>', markdown_text)
-    markdown_text = re.sub(r'(?m)(<li>.*?</li>)', r'<ul>\1</ul>', markdown_text)
+    markdown_text = re.sub(r'(?s)(<li>.*?</li>)', r'<ul>\1</ul>', markdown_text)
+    markdown_text = re.sub(r'(?s)(</ul>\s*<ul>)', '', markdown_text)
 
+    markdown_text = re.sub(r'(?s)(<h\d>.*?</h\d>)', r'\1\n\n', markdown_text)
+    markdown_text = re.sub(r'(?s)(<pre>.*?</pre>)', r'\1\n\n', markdown_text)
+    markdown_text = re.sub(r'(?s)(<ul>.*?</ul>)', r'\1\n\n', markdown_text)
     paragraphs = markdown_text.split('\n\n')
-    paragraphs = [f'<p>{p}</p>' for p in paragraphs if not re.match(r'<(h\d|ul|pre|li|b|i|tt)', p)]
+    paragraphs = [f'<p>{p}</p>' if not re.match(r'<(h\d|ul|pre|li|b|i|code)', p) else p for p in paragraphs]
     markdown_text = '\n\n'.join(paragraphs)
 
     return markdown_text
@@ -41,7 +44,6 @@ def convert_markdown_to_html(input_path, output_path=None):
         print(f"error: invalid markdown <{e}>", file=sys.stderr)
         sys.exit(1)
 
-    # Output the HTML content
     if output_path:
         try:
             with open(output_path, 'w') as file:
